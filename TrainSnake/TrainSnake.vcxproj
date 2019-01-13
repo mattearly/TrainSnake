@@ -134,9 +134,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\util\m_random.h" />
     <ClInclude Include="src\game\game.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\util\m_random.cpp" />
     <ClCompile Include="src\game\game.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>

@@ -1,35 +1,18 @@
 #include "game.h"
-#include <iostream>
-#include <assert.h>
-game::game() {}
+#include "../util/m_random.h"
 
-
-game::~game() {
-
-  clean();
-}
-
-void game::run() {
+game::game() {
   level = L1;
   startingCabsRequiredToAdvance = 1;
-  init_systems();
-  load_assets();
-  resetCabsCollected();
-  main_loop();
-  //clean();
 }
 
-int game::getRandomNumber(const int &start, const int &end) {
-  // initialize the random number generator with time-dependent seed
-  static long long int timeSeed = std::chrono::high_resolution_clock::now().time_since_epoch()
-    .count();
-  static std::seed_seq ss{ uint32_t(timeSeed & 0xffffffff), uint32_t(timeSeed >> 32) };
-  // initialize a uniform distribution between 0 and 1
-  std::uniform_int_distribution<int> unif(start, end);
+game::~game() {}
 
-  static std::mt19937 mgen(ss);
-
-  return unif(mgen);
+void game::run() {
+  init_systems();
+  load_assets();
+  main_loop();
+  clean();
 }
 
 void game::handleKeys() {
@@ -37,7 +20,6 @@ void game::handleKeys() {
     if (event.type == SDL_QUIT) {
       quit = true;
     }
-
     if (event.type == SDL_KEYDOWN) {
       switch (event.key.keysym.sym) {
       case SDLK_a:
@@ -68,7 +50,6 @@ void game::init_systems() {
   SDL_Init(SDL_INIT_EVERYTHING);
   SDL_CreateWindowAndRenderer(800, 640, SDL_WINDOW_SHOWN, &window, &renderer);
   surface = SDL_GetWindowSurface(window);
-
   /* initialize sound */
   int audio_rate = 22050;
   Uint16 audio_format = AUDIO_S16SYS;
@@ -100,17 +81,13 @@ void game::load_assets() {
       std::ios_base::out);
     sstreamcabs << i;
     sstreamcabs << ".png";
-
     std::string level_path = sstreamlevels.str();
     std::string train_path = sstreamtrains.str();
     std::string cab_path = sstreamcabs.str();
-
     levels[i] = load_pic(level_path, surface);
     trains[i] = load_pic(train_path, surface);
     cabs[i] = load_pic(cab_path, surface);
-
   }
-
   /* load sound assets */
   sounds[0] = Mix_LoadWAV("../TrainSnake/res/sounds/thomas_the_train_theme_song.wav");
   sounds[1] = Mix_LoadWAV("../TrainSnake/res/sounds/today.wav");
@@ -127,11 +104,8 @@ void game::load_assets() {
 }
 
 SDL_Surface * game::load_pic(const std::string & path, SDL_Surface * srfc) {
-
   SDL_Surface *final_surface = nullptr;
-
   SDL_Surface *loaded_surface = IMG_Load(path.c_str());
-
   if (loaded_surface == nullptr) {
     printf("unable to load %s", path.c_str());
   } else {
@@ -151,20 +125,15 @@ void game::main_loop() {
   Mix_PlayChannel(-1, sounds[3], 0); // "start tune"
   while (!quit) {
     frameStart = SDL_GetTicks();
-
     handleKeys();
-
     /* game logic - update trains, cabs, collectibles, and game progression */
     if (animation_accumulator > levelSpeed()) animation_accumulator = levelSpeed();
-
     if (animation_accumulator % levelSpeed() == 0) {
       moveTrain();
       collectPickups();
       animation_accumulator = 1;
     }
-
     drawChanges();
-
     frameTime = SDL_GetTicks() - frameStart;
     animation_accumulator += frameTime;
     if (frameDelay > frameTime) {
@@ -174,13 +143,13 @@ void game::main_loop() {
 }
 
 void game::clean() {
+  SDL_DestroyRenderer(renderer);
+  SDL_DestroyWindow(window);
   for (int i = 0; i < 11; i++) {
     SDL_FreeSurface(levels[i]);
     SDL_FreeSurface(trains[i]);
     SDL_FreeSurface(cabs[i]);
   }
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
   SDL_Quit();
 }
 
@@ -205,8 +174,7 @@ void game::moveDown() {
 }
 
 int game::winCondition() {
-  return startingCabsRequiredToAdvance + (int)level;
-  //return 2;
+  return startingCabsRequiredToAdvance + (int)level * 2;
 }
 
 void game::moveTrain() {
@@ -261,8 +229,8 @@ void game::spawnCollectibles() {
     while (collectiblesSpawned < 4) {
 
       do {
-        x = getRandomNumber(0, 24);
-        y = getRandomNumber(0, 19);
+        x = mearly::NTKR(0, 24);
+        y = mearly::NTKR(0, 19);
 
 
         /*make sure x and y don't spawn on the train head or a previous cab */
